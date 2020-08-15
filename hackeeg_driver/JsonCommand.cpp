@@ -195,13 +195,13 @@ void JsonCommand::sendJsonLinesResponse(int status_code, char *status_text) {
     root[STATUS_CODE_KEY] = status_code;
     root[STATUS_TEXT_KEY] = status_text;
     serializeJson(doc, SerialUSB);
-    SerialUSB.println();
+    Serial.println();
     doc.clear();
 }
 
 void JsonCommand::sendJsonLinesDocResponse(JsonDocument &doc) {
     serializeJson(doc, SerialUSB);
-    SerialUSB.println();
+    Serial.println();
     doc.clear();
 }
 
@@ -212,12 +212,12 @@ void JsonCommand::sendMessagePackResponse(int status_code, char *status_text) {
     if (!status_text) {
         root[MP_STATUS_TEXT_KEY] = status_text;
     }
-    serializeMsgPack(doc, SerialUSB);
+    serializeMsgPack(doc, Serial);
     doc.clear();
 }
 
 void JsonCommand::sendMessagePackDocResponse(JsonDocument &doc) {
-    serializeMsgPack(doc, SerialUSB);
+    serializeMsgPack(doc, Serial);
     doc.clear();
 }
 
@@ -236,4 +236,3 @@ void JsonCommand::clearBuffer() {
 char *JsonCommand::next() {
     return strtok_r(NULL, delim, &last);
 }
-

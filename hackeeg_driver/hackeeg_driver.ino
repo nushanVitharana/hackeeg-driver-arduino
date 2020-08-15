@@ -31,7 +31,7 @@
 
 
 #define BAUD_RATE 2000000     // WiredSerial ignores this and uses the maximum rate
-#define WiredSerial SerialUSB // use the Arduino Due's Native USB port
+#define WiredSerial Serial // use the Arduino Due's Native USB port
 
 #define SPI_BUFFER_SIZE 200
 #define OUTPUT_BUFFER_SIZE 1000
