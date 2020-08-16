@@ -30,8 +30,7 @@
 #include "SpiDma.h"
 
 
-#define BAUD_RATE 2000000     // WiredSerial ignores this and uses the maximum rate
-#define WiredSerial Serial // use the Arduino Due's Native USB port
+#define BAUD_RATE 9600     // Serial ignores this and uses the maximum rate
 
 #define SPI_BUFFER_SIZE 200
 #define OUTPUT_BUFFER_SIZE 1000
@@ -47,7 +46,7 @@
 #define RESPONSE_NOT_IMPLEMENTED 501
 #define RESPONSE_NO_ACTIVE_CHANNELS 502
 
-#define PIN_LED 13 //onboard LED on Arduino Uno/Mega
+#define PIN_LED D0 //onboard LED on nodeMCU
 
 const char *STATUS_TEXT_OK = "Ok";
 const char *STATUS_TEXT_BAD_REQUEST = "Bad request";
@@ -137,14 +136,20 @@ void writeRegisterCommandDirect(unsigned char register_number, unsigned char reg
 
 
 void setup() {
-    WiredSerial.begin(BAUD_RATE);
+    Serial.begin(BAUD_RATE);
     pinMode(PIN_LED, OUTPUT);     // Configure the onboard LED for output
     digitalWrite(PIN_LED, LOW);   // default to LED off
 
+    Serial.println("Init");
+
     protocol_mode = TEXT_MODE;
+
+    Serial.println("arduinoSetup");
     arduinoSetup();
+    Serial.println("adsSetup");
     adsSetup();
 
+    Serial.println("commands Setup");
     // Setup callbacks for SerialCommand commands
     serialCommand.addCommand("nop", nopCommand);                     // No operation (does nothing)
     serialCommand.addCommand("micros", microsCommand);               // Returns number of microseconds since the program began executing
@@ -196,7 +201,7 @@ void setup() {
     jsonCommand.addCommand("rdata", rdataCommand);                   // Read one sample of data from each active channel
     jsonCommand.setDefaultHandler(unrecognizedJsonLines);            // Handler for any command that isn't matched
 
-    WiredSerial.println("Ready");
+    Serial.println("Ready");
 }
 
 void loop() {
@@ -230,7 +235,7 @@ void output_hex_byte(int value) {
     int clipped = value & 0xff;
     char charValue[3];
     sprintf(charValue, "%02X", clipped);
-    WiredSerial.print(charValue);
+    Serial.print(charValue);
 }
 
 void encode_hex(char *output, char *input, int input_len) {
@@ -257,7 +262,7 @@ void send_response(int status_code, const char *status_text) {
         case TEXT_MODE:
             char response[128];
             sprintf(response, "%d %s", status_code, status_text);
-            WiredSerial.println(response);
+            Serial.println(response);
             break;
         case JSONLINES_MODE:
             jsonCommand.sendJsonLinesResponse(status_code, (char *) status_text);
@@ -278,8 +283,8 @@ void send_jsonlines_data(int status_code, char data, char *status_text) {
     root[STATUS_CODE_KEY] = status_code;
     root[STATUS_TEXT_KEY] = status_text;
     root[DATA_KEY] = data;
-    serializeJson(doc, WiredSerial);
-    WiredSerial.println();
+    serializeJson(doc, Serial);
+    Serial.println();
     doc.clear();
 }
 
@@ -290,20 +295,20 @@ void versionCommand(unsigned char unused1, unsigned char unused2) {
 void statusCommand(unsigned char unused1, unsigned char unused2) {
     detectActiveChannels();
     if (protocol_mode == TEXT_MODE) {
-        WiredSerial.println("200 Ok");
-        WiredSerial.print("Driver version: ");
-        WiredSerial.println(driver_version);
-        WiredSerial.print("Board name: ");
-        WiredSerial.println(board_name);
-        WiredSerial.print("Board maker: ");
-        WiredSerial.println(maker_name);
-        WiredSerial.print("Hardware type: ");
-        WiredSerial.println(hardware_type);
-        WiredSerial.print("Max channels: ");
-        WiredSerial.println(max_channels);
-        WiredSerial.print("Number of active channels: ");
-        WiredSerial.println(num_active_channels);
-        WiredSerial.println();
+        Serial.println("200 Ok");
+        Serial.print("Driver version: ");
+        Serial.println(driver_version);
+        Serial.print("Board name: ");
+        Serial.println(board_name);
+        Serial.print("Board maker: ");
+        Serial.println(maker_name);
+        Serial.print("Hardware type: ");
+        Serial.println(hardware_type);
+        Serial.print("Max channels: ");
+        Serial.println(max_channels);
+        Serial.print("Number of active channels: ");
+        Serial.println(num_active_channels);
+        Serial.println();
         return;
     }
     StaticJsonDocument<1024> doc;
@@ -336,7 +341,7 @@ void microsCommand(unsigned char unused1, unsigned char unused2) {
     unsigned long microseconds = micros();
     if (protocol_mode == TEXT_MODE) {
         send_response_ok();
-        WiredSerial.println(microseconds);
+        Serial.println(microseconds);
         return;
     }
     StaticJsonDocument<1024> doc;
@@ -413,10 +418,10 @@ void helpCommand(unsigned char unused1, unsigned char unused2) {
     if (protocol_mode == JSONLINES_MODE ||  protocol_mode == MESSAGEPACK_MODE) {
         send_response(RESPONSE_OK, "Help not available in JSON Lines or MessagePack modes.");
     } else {
-        WiredSerial.println("200 Ok");
-        WiredSerial.println("Available commands: ");
+        Serial.println("200 Ok");
+        Serial.println("Available commands: ");
         serialCommand.printCommands();
-        WiredSerial.println();
+        Serial.println();
     }
 }
 
@@ -428,20 +433,20 @@ void readRegisterCommand(unsigned char unused1, unsigned char unused2) {
         long registerNumber = hex_to_long(arg1);
         if (registerNumber >= 0) {
             int result = adcRreg(registerNumber);
-            WiredSerial.print("200 Ok");
-            WiredSerial.print(" (Read Register ");
+            Serial.print("200 Ok");
+            Serial.print(" (Read Register ");
             output_hex_byte(registerNumber);
-            WiredSerial.print(") ");
-            WiredSerial.println();
+            Serial.print(") ");
+            Serial.println();
             output_hex_byte(result);
-            WiredSerial.println();
+            Serial.println();
         } else {
-            WiredSerial.println("402 Error: expected hexidecimal digits.");
+            Serial.println("402 Error: expected hexidecimal digits.");
         }
     } else {
-        WiredSerial.println("403 Error: register argument missing.");
+        Serial.println("403 Error: register argument missing.");
     }
-    WiredSerial.println();
+    Serial.println();
 }
 
 void readRegisterCommandDirect(unsigned char register_number, unsigned char unused1) {
@@ -469,23 +474,23 @@ void writeRegisterCommand(unsigned char unused1, unsigned char unused2) {
             long registerValue = hex_to_long(arg2);
             if (registerNumber >= 0 && registerValue >= 0) {
                 adcWreg(registerNumber, registerValue);
-                WiredSerial.print("200 Ok");
-                WiredSerial.print(" (Write Register ");
+                Serial.print("200 Ok");
+                Serial.print(" (Write Register ");
                 output_hex_byte(registerNumber);
-                WiredSerial.print(" ");
+                Serial.print(" ");
                 output_hex_byte(registerValue);
-                WiredSerial.print(") ");
-                WiredSerial.println();
+                Serial.print(") ");
+                Serial.println();
             } else {
-                WiredSerial.println("402 Error: expected hexidecimal digits.");
+                Serial.println("402 Error: expected hexidecimal digits.");
             }
         } else {
-            WiredSerial.println("404 Error: value argument missing.");
+            Serial.println("404 Error: value argument missing.");
         }
     } else {
-        WiredSerial.println("403 Error: register argument missing.");
+        Serial.println("403 Error: register argument missing.");
     }
-    WiredSerial.println();
+    Serial.println();
 }
 
 
@@ -562,8 +567,8 @@ void sdatacCommand(unsigned char unused1, unsigned char unused2) {
 
 // This gets set as the default handler, and gets called when no other command matches.
 void unrecognized(const char *command) {
-    WiredSerial.println("406 Error: Unrecognized command.");
-    WiredSerial.println();
+    Serial.println("406 Error: Unrecognized command.");
+    Serial.println();
 }
 
 // This gets set as the default handler for jsonlines and messagepack, and gets called when no other command matches.
@@ -624,11 +629,11 @@ inline void receive_sample() {
 inline void send_sample(void) {
     switch (protocol_mode) {
         case JSONLINES_MODE:
-            WiredSerial.write(json_rdatac_header);
+            Serial.write(json_rdatac_header);
             base64_encode(output_buffer, (char *) spi_bytes, num_timestamped_spi_bytes);
-            WiredSerial.write(output_buffer);
-            WiredSerial.write(json_rdatac_footer);
-            WiredSerial.write("\n");
+            Serial.write(output_buffer);
+            Serial.write(json_rdatac_footer);
+            Serial.write("\n");
             break;
         case TEXT_MODE:
             if (base64_mode) {
@@ -636,7 +641,7 @@ inline void send_sample(void) {
             } else {
                 encode_hex(output_buffer, (char *) spi_bytes, num_timestamped_spi_bytes);
             }
-            WiredSerial.println(output_buffer);
+            Serial.println(output_buffer);
             break;
         case MESSAGEPACK_MODE:
             send_sample_messagepack(num_timestamped_spi_bytes);
@@ -657,9 +662,9 @@ inline void send_sample_json(int num_bytes) {
 
 
 inline void send_sample_messagepack(int num_bytes) {
-    WiredSerial.write(messagepack_rdatac_header, messagepack_rdatac_header_size);
-    WiredSerial.write((uint8_t) num_bytes);
-    WiredSerial.write(spi_bytes, num_bytes);
+    Serial.write(messagepack_rdatac_header, messagepack_rdatac_header_size);
+    Serial.write((uint8_t) num_bytes);
+    Serial.write(spi_bytes, num_bytes);
 }
 
 void adsSetup() { //default settings for ADS1298 and compatible chips
@@ -703,12 +708,14 @@ void adsSetup() { //default settings for ADS1298 and compatible chips
     num_spi_bytes = (3 * (max_channels + 1)); //24-bits header plus 24-bits per channel
     num_timestamped_spi_bytes = num_spi_bytes + TIMESTAMP_SIZE_IN_BYTES + SAMPLE_NUMBER_SIZE_IN_BYTES;
     if (max_channels == 0) { //error mode
-        while (1) {
-            digitalWrite(PIN_LED, HIGH);
-            delay(500);
-            digitalWrite(PIN_LED, LOW);
-            delay(500);
-        }
+        Serial.println(val);
+        Serial.println("ERROR");
+        // while (1) {
+        //     digitalWrite(PIN_LED, HIGH);
+        //     delay(500);
+        //     digitalWrite(PIN_LED, LOW);
+        //     delay(500);
+        // }
     } //error mode
 
     // All GPIO set to output 0x0000: (floating CMOS inputs can flicker on and off, creating noise)
@@ -727,18 +734,18 @@ void arduinoSetup() {
     //pinMode(PIN_CS, OUTPUT);
     pinMode(PIN_START, OUTPUT);
     pinMode(IPIN_DRDY, INPUT);
-    pinMode(PIN_CLKSEL, OUTPUT);// *optional
-    pinMode(IPIN_RESET, OUTPUT);// *optional
+    // pinMode(PIN_CLKSEL, OUTPUT);// *optional
+    // pinMode(IPIN_RESET, OUTPUT);// *optional
     //pinMode(IPIN_PWDN, OUTPUT);// *optional
     digitalWrite(PIN_CLKSEL, HIGH); // internal clock
     //start Serial Peripheral Interface
     spiBegin(PIN_CS);
     spiInit(MSBFIRST, SPI_MODE1, SPI_CLOCK_DIVIDER);
     //Start ADS1298
-    delay(500); //wait for the ads129n to be ready - it can take a while to charge caps
-    digitalWrite(PIN_CLKSEL, HIGH);// *optional
+    delay(1000); //wait for the ads129n to be ready - it can take a while to charge caps
+    // digitalWrite(PIN_CLKSEL, HIGH);// *optional
     delay(10); // wait for oscillator to wake up
-    digitalWrite(IPIN_PWDN, HIGH); // *optional - turn off power down mode
+    // digitalWrite(IPIN_PWDN, HIGH); // *optional - turn off power down mode
     digitalWrite(IPIN_RESET, HIGH);
     delay(1000);
     digitalWrite(IPIN_RESET, LOW);

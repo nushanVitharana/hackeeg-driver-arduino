@@ -25,7 +25,7 @@
 // 4 = 21 Mhz
 // ADS1299 needs the SPI clock to be 20Mhz or less
 
-#define SPI_CLOCK_DIVIDER 5
+#define SPI_CLOCK_DIVIDER 32  // 2, 4, 8, 16, 32, 64 or 128.
 
 void spiBegin(uint8_t csPin);
 

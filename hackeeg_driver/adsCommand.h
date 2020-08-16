@@ -27,17 +27,27 @@
 
 // Arduino Due
 // HackEEG Shield v1.5.0
-const int IPIN_PWDN = 33;
-const int PIN_CLKSEL = 48;
-const int IPIN_RESET = 47;
+const int IPIN_PWDN = D6;
+const int PIN_CLKSEL = D5;
 
-const int PIN_START = 59;
-const int IPIN_DRDY = 24;   // board 0: JP1, pos. 1
+const int IPIN_RESET = D4;
+
+const int PIN_START = D3;
+
+const int IPIN_DRDY = D2;
+
+// const int IPIN_PWDN = 33;
+// const int PIN_CLKSEL = 48;
+// const int IPIN_RESET = 47;
+
+// const int PIN_START = 59;
+// const int IPIN_DRDY = 24;   // board 0: JP1, pos. 1
 //const int IPIN_DRDY = 25; // board 1: JP1, pos. 2
 //const int IPIN_DRDY = 26; // board 2: JP1, pos. 3
 //const int IPIN_DRDY = 27; // board 3: JP1, pos. 4
 
-const int PIN_CS = 23;   // board 0: JP2, pos. 3
+const int PIN_CS = D1;
+// const int PIN_CS = 23;   // board 0: JP2, pos. 3
 //const int PIN_CS = 52; // board 1: JP2, pos. 4
 //const int PIN_CS = 10; // board 2: JP2, pos. 5
 //const int PIN_CS = 4;  // board 3: JP2, pos. 6
