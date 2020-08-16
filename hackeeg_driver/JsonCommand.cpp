@@ -20,7 +20,7 @@
  */
 
 // uncomment for debugging on Serial interface (programming port)
-// you must connect to Serial port first, then SerialUSB, since Serial will reset the Arduino Due
+// you must connect to Serial port first, then Serial, since Serial will reset the Arduino Due
 //#define JSONCOMMAND_DEBUG 1
 
 #include "JsonCommand.h"
@@ -100,8 +100,8 @@ void JsonCommand::setDefaultHandler(void (*func)(const char *)) {
  */
 void JsonCommand::readSerial() {
     StaticJsonDocument<1024> json_command;
-    while (SerialUSB.available() > 0) {
-        char inChar = SerialUSB.read();   // Read single available character, there may be more waiting
+    while (Serial.available() > 0) {
+        char inChar = Serial.read();   // Read single available character, there may be more waiting
 #ifdef JSONCOMMAND_DEBUG
         Serial.print(inChar);   // Echo back to serial stream
 #endif
@@ -194,13 +194,13 @@ void JsonCommand::sendJsonLinesResponse(int status_code, char *status_text) {
     JsonObject root = doc.to<JsonObject>();
     root[STATUS_CODE_KEY] = status_code;
     root[STATUS_TEXT_KEY] = status_text;
-    serializeJson(doc, SerialUSB);
+    serializeJson(doc, Serial);
     Serial.println();
     doc.clear();
 }
 
 void JsonCommand::sendJsonLinesDocResponse(JsonDocument &doc) {
-    serializeJson(doc, SerialUSB);
+    serializeJson(doc, Serial);
     Serial.println();
     doc.clear();
 }

@@ -40,10 +40,10 @@ SerialCommand::SerialCommand()
 void SerialCommand::addCommand(const char *command,
                                void (*func)(unsigned char register_number, unsigned char register_value)) {
 #ifdef SERIALCOMMAND_DEBUG
-    SerialUSB.print("Adding command (");
-    SerialUSB.print(commandCount);
-    SerialUSB.print("): ");
-    SerialUSB.println(command);
+    Serial.print("Adding command (");
+    Serial.print(commandCount);
+    Serial.print("): ");
+    Serial.println(command);
 #endif
 
     commandList = (SerialCommandCallback *) realloc(commandList, (commandCount + 1) * sizeof(SerialCommandCallback));
