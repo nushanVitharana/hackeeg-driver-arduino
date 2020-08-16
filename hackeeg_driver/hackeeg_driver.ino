@@ -47,6 +47,8 @@
 #define RESPONSE_NOT_IMPLEMENTED 501
 #define RESPONSE_NO_ACTIVE_CHANNELS 502
 
+#define PIN_LED 13 //onboard LED on Arduino Uno/Mega
+
 const char *STATUS_TEXT_OK = "Ok";
 const char *STATUS_TEXT_BAD_REQUEST = "Bad request";
 const char *STATUS_TEXT_ERROR = "Error";
