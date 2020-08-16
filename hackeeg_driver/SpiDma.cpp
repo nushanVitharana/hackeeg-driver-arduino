@@ -34,7 +34,7 @@ void spiBegin(uint8_t csPin) {
 }
 
 void spiInit(uint8_t bitOrder, uint8_t spiMode, uint8_t spiClockDivider) {
-    SPI.beginTransaction(bitOrder);  // MSBFIRST or LSBFIRST
+    SPI.setBitOrder(bitOrder);  // MSBFIRST or LSBFIRST
     SPI.setDataMode(spiMode);             // SPI_MODE0, SPI_MODE1; SPI_MODE2; SPI_MODE3
     SPI.setClockDivider(spiClockDivider);
 }
